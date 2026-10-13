@@ -10,4 +10,6 @@ Work in progress.
 python -m vocal_isolator song.mp3
 ```
 
-Right now this just loads the song and writes it back out — separation isn't hooked up yet.
+Currently uses a simple center-channel extraction (no ML): vocals are usually panned to the
+center of a stereo mix, so we take the mid channel and spectrally subtract the side channel.
+Only works on stereo files, and anything else panned center (bass, kick, snare) leaks through.

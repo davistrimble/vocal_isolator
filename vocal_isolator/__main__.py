@@ -2,6 +2,7 @@ import argparse
 import os
 
 from vocal_isolator.audio_io import load_audio, save_audio
+from vocal_isolator.center_extract import extract_center
 
 
 def main():
@@ -18,8 +19,8 @@ def main():
     samples, sr = load_audio(args.input)
     print(f"loaded {args.input}: {samples.shape[0] / sr:.1f}s, {sr} Hz, {samples.shape[1]} channel(s)")
 
-    # TODO: actually separate the vocals. just passing audio through for now
-    save_audio(output, samples, sr)
+    vocals = extract_center(samples, sr)
+    save_audio(output, vocals, sr)
     print(f"saved to {output}")
 
 
