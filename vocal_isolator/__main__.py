@@ -2,14 +2,14 @@ import argparse
 import os
 
 from vocal_isolator.analysis import NOTE_NAMES
-from vocal_isolator.audio_io import load_audio, save_audio
+from vocal_isolator.audio_io import NotAnMp3Error, load_audio, save_audio
 from vocal_isolator.lrclib import find_synced_lyrics
 from vocal_isolator.pipeline import process
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Isolate the vocals from a song.")
-    parser.add_argument("input", help="path to the song (wav, mp3, flac)")
+    parser = argparse.ArgumentParser(prog="vocal_isolator", description="Isolate the vocals from a song.")
+    parser.add_argument("input", help="path to the song (.mp3)")
     parser.add_argument("-o", "--output", help="where to save the vocals (default: <name>_vocals.wav)")
     parser.add_argument(
         "--method",
@@ -37,10 +37,16 @@ def main():
 
     output = args.output
     if output is None:
-        name = os.path.splitext(os.path.basename(args.input))[0]
+        name = os.path.basename(args.input)
+        # strip every .mp3 off the end, some downloads come as "song.mp3.mp3"
+        while name.lower().endswith(".mp3"):
+            name = name[:-4]
         output = name + "_vocals.wav"
 
-    samples, sr = load_audio(args.input)
+    try:
+        samples, sr = load_audio(args.input)
+    except NotAnMp3Error as e:
+        parser.error(str(e))
     print(f"loaded {args.input}: {samples.shape[0] / sr:.1f}s, {sr} Hz, {samples.shape[1]} channel(s)")
 
     lrc_text = None

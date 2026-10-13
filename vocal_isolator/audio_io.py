@@ -2,11 +2,30 @@ import numpy as np
 import soundfile as sf
 
 
+class NotAnMp3Error(ValueError):
+    pass
+
+
+def check_is_mp3(path):
+    """Only MP3 files are supported. Checks both the file extension and the
+    actual contents, so a renamed .wav (or a non-audio file) gets caught too.
+    """
+    if not path.lower().endswith(".mp3"):
+        raise NotAnMp3Error(f"{path} isn't an .mp3 file")
+    try:
+        file_format = sf.info(path).format
+    except sf.LibsndfileError:
+        raise NotAnMp3Error(f"{path} couldn't be read as audio")
+    if file_format != "MP3":
+        raise NotAnMp3Error(f"{path} is named .mp3 but is actually a {file_format} file")
+
+
 def load_audio(path):
-    """Load an audio file. Returns (samples, sample_rate).
+    """Load an MP3 file. Returns (samples, sample_rate).
 
     samples has shape (num_samples, num_channels) and is float32 in [-1, 1].
     """
+    check_is_mp3(path)
     samples, sr = sf.read(path, dtype="float32", always_2d=True)
     return samples, sr
 
