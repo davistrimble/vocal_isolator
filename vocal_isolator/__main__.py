@@ -4,6 +4,7 @@ import os
 from vocal_isolator.audio_io import load_audio, normalize, save_audio, trim_silence
 from vocal_isolator.center_extract import extract_center
 from vocal_isolator.eq import presence_boost
+from vocal_isolator.ml_separate import extract_vocals_ml
 from vocal_isolator.lrclib import find_synced_lyrics
 from vocal_isolator.lyrics import parse_lrc, sung_sections, vocal_gate
 
@@ -12,10 +13,16 @@ def main():
     parser = argparse.ArgumentParser(description="Isolate the vocals from a song.")
     parser.add_argument("input", help="path to the song (wav, mp3, flac)")
     parser.add_argument("-o", "--output", help="where to save the vocals (default: <name>_vocals.wav)")
+    parser.add_argument(
+        "--method",
+        choices=["ml", "classic"],
+        default="ml",
+        help="ml = Demucs neural network (default, much cleaner). classic = my original signal processing pipeline",
+    )
     parser.add_argument("--lyrics", help="timestamped lyrics (.lrc file), used to mute parts with no singing")
     parser.add_argument("--artist", help="with --title, look up timestamped lyrics online instead of using --lyrics")
     parser.add_argument("--title", help="song title, for looking up lyrics")
-    parser.add_argument("--no-boost", action="store_true", help="skip the 2-5 kHz presence boost")
+    parser.add_argument("--no-boost", action="store_true", help="skip the 2-5 kHz presence boost (classic method only)")
     args = parser.parse_args()
 
     if bool(args.artist) != bool(args.title):
@@ -29,9 +36,13 @@ def main():
     samples, sr = load_audio(args.input)
     print(f"loaded {args.input}: {samples.shape[0] / sr:.1f}s, {sr} Hz, {samples.shape[1]} channel(s)")
 
-    vocals = extract_center(samples, sr)
-    if not args.no_boost:
-        vocals = presence_boost(vocals, sr)
+    if args.method == "ml":
+        print("separating with Demucs (takes a minute or two)...")
+        vocals = extract_vocals_ml(samples, sr)
+    else:
+        vocals = extract_center(samples, sr)
+        if not args.no_boost:
+            vocals = presence_boost(vocals, sr)
 
     lrc_text = None
     if args.lyrics:
