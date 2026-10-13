@@ -39,6 +39,28 @@ python -m vocal_isolator song.mp3
 Writes `<song>_vocals.wav` next to the input. The first run downloads the model (~90 MB). A
 4-minute song takes about a minute and a half on an Apple Silicon Mac.
 
+### Rehearsal options
+
+```
+python -m vocal_isolator song.mp3 --new-key A          # transpose into A
+python -m vocal_isolator song.mp3 --new-tempo 90       # slow it down to 90 BPM, same pitch
+python -m vocal_isolator song.mp3 --metronome          # click on every beat, keep the intro as a count-in
+```
+
+The song's original key and tempo are detected automatically. If the detection is off (tempo
+detection sometimes picks double or half the tempo you'd count), pass `--original-key` /
+`--original-tempo` to override it.
+
+- **Tempo and beats** are found with librosa's beat tracker, which looks for the steady pulse that
+  lines up with the most note onsets (drum hits, strummed chords) in the original mix.
+- **Key** uses the Krumhansl-Schmuckler algorithm: measure how much each of the 12 notes is used in
+  the song, and compare that against profiles of how much each note is used in every major and
+  minor key.
+- **Key and tempo changes** use a phase vocoder, which can stretch audio in time without changing
+  its pitch (and vice versa), unlike just speeding up or slowing down the recording.
+
+### Classical method
+
 To use the classical pipeline instead:
 
 ```
