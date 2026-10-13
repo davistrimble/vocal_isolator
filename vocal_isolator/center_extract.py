@@ -14,6 +14,7 @@ import numpy as np
 from scipy.signal import stft, istft
 
 from vocal_isolator.percussion import harmonic_mask
+from vocal_isolator.repet import background_mask
 
 N_FFT = 2048
 
@@ -46,6 +47,10 @@ def extract_center(samples, sr):
     # drums (especially snare) are often panned center too, so get rid of
     # anything that looks percussive
     magnitude = magnitude * harmonic_mask(magnitude)
+
+    # remove the backing music that repeats every bar
+    frames_per_second = sr / (N_FFT // 2)  # scipy's default hop is half the window
+    magnitude = magnitude * (1 - background_mask(magnitude, frames_per_second))
 
     phase = np.angle(mid_spec)
     vocals_spec = magnitude * np.exp(1j * phase)
