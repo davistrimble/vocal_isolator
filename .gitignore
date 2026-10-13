@@ -19,3 +19,6 @@ output/
 
 # lyrics are copyrighted too
 *.lrc
+
+# benchmark dataset
+data/
