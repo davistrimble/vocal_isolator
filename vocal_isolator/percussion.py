@@ -11,23 +11,28 @@ wipes out anything that doesn't match the direction you filter in:
   - filtering along time keeps horizontal lines   -> "harmonic" estimate
   - filtering along frequency keeps vertical lines -> "percussive" estimate
 
-Then each point in the spectrogram is kept if it looks more harmonic than
-percussive.
+Then each point in the spectrogram is kept in proportion to how harmonic it
+looks compared to how percussive it looks.
 """
 import numpy as np
 from scipy.ndimage import median_filter
 
 # how many neighbors the median filters look at. bigger = stronger separation
-# but smears things more
-KERNEL_SIZE = 17
+# but smears things more. time is in STFT frames, freq is in frequency bins
+TIME_KERNEL = 33
+FREQ_KERNEL = 17
 
 
 def harmonic_mask(magnitude):
-    """Returns a 0/1 array the same shape as magnitude (freq x time).
+    """Returns an array of values from 0 to 1, same shape as magnitude (freq x time).
 
-    1 where the spectrogram is more harmonic (voice-like), 0 where it's
-    more percussive (drum-like).
+    Close to 1 where the spectrogram is harmonic (voice-like), close to 0 where
+    it's percussive (drum-like), and in between when it's a mix.
+
+    This used to be a hard 0/1 cutoff, but flipping bins fully on and off
+    made the output sound warbly/metallic. A soft mask (this is called a
+    Wiener-style mask) fades between them instead.
     """
-    harmonic = median_filter(magnitude, size=(1, KERNEL_SIZE))
-    percussive = median_filter(magnitude, size=(KERNEL_SIZE, 1))
-    return (harmonic >= percussive).astype(magnitude.dtype)
+    harmonic = median_filter(magnitude, size=(1, TIME_KERNEL))
+    percussive = median_filter(magnitude, size=(FREQ_KERNEL, 1))
+    return harmonic ** 2 / (harmonic ** 2 + percussive ** 2 + 1e-10)
