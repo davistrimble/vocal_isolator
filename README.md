@@ -41,7 +41,9 @@ kind of non-vocal sound:
 4. **REPET** — the backing music repeats every bar while the vocal melody doesn't. Find the
    repeat length, take the median across all repetitions to model the background, and subtract it.
    Runs on 20 second windows since songs change tempo.
-5. **Lyric gating** (optional) — the steps above never remove everything, and leftovers are most
+5. **Presence boost** — turn up 2-5 kHz by a few dB, where consonants live. Doesn't remove anything,
+   but makes the words easier to follow over whatever background is left. Skip with `--no-boost`.
+6. **Lyric gating** (optional) — the steps above never remove everything, and leftovers are most
    obvious when no one is singing over them. LRC lyrics have a timestamp for each line, so anything
    outside a sung line gets faded out.
 
@@ -52,6 +54,13 @@ kind of non-vocal sound:
 - Long held vocal notes can get partly removed by REPET since they look like they "repeat".
 - Lyric gating only knows when each *line* starts, not each word, so gaps inside a line aren't muted.
 - Reverb on the vocal usually gets removed along with the background, so the result sounds dry.
+
+## Things I tried that didn't work
+
+- **Melody tracking / harmonic comb filter** — find the note being sung in each frame and keep only
+  its harmonics. Pitch tracking was accurate on test signals, but on real songs the guitars and keys
+  play in the same key as the singer, so their harmonics land in the same places. It only removed
+  ~0.5 dB and locked onto instruments almost as often as the voice, so I took it out.
 
 ## References
 
