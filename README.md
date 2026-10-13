@@ -2,7 +2,16 @@
 
 Take a song in, get just the vocals out.
 
-Work in progress.
+## Why I built this
+
+I sing in an a cappella group, and every so often the soloist for a song can't make it to
+practice. Playing the original recording doesn't really work as a stand-in, since the instruments
+cover up the parts the rest of us are supposed to be singing. What we actually want is just the
+lead vocal, so we can sing our parts around it like the soloist is in the room.
+
+This tool takes a song and gives back only the vocals. Give it the song's lyrics and it'll also
+mute everything between sung lines and start the file right at the first line, so it's ready to
+play at rehearsal.
 
 ## Usage
 
