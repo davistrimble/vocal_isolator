@@ -40,6 +40,22 @@ python -m vocal_isolator song.mp3
 Writes `<song>_vocals.wav` next to the input. The first run downloads the model (~90 MB). A
 4-minute song takes about a minute and a half on an Apple Silicon Mac.
 
+### Website
+
+```
+python -m vocal_isolator.web
+```
+
+Then open http://localhost:8000. Pick an MP3 and it detects the tempo and key right away and fills
+them in; check "Change the key" or "Change the tempo" to adjust them, or "Add a metronome" for a
+click track with a count-in. The page checks on progress every 15 seconds while the song processes,
+then lets you play or download the result.
+
+It's a small [Flask](https://flask.palletsprojects.com/) app (`vocal_isolator/web.py`) with a plain
+HTML/JavaScript page. Processing runs in a background thread so the browser isn't stuck waiting on
+one long request — the page polls a `/status` endpoint instead. All the audio work goes through
+the same `pipeline.process()` function as the command line.
+
 ### Rehearsal options
 
 ```
