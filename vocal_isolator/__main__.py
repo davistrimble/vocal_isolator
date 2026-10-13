@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from vocal_isolator.audio_io import load_audio, save_audio
+from vocal_isolator.audio_io import load_audio, normalize, save_audio
 from vocal_isolator.center_extract import extract_center
 from vocal_isolator.lrclib import find_synced_lyrics
 from vocal_isolator.lyrics import parse_lrc, sung_sections, vocal_gate
@@ -47,7 +47,7 @@ def main():
         gate = vocal_gate(sections, len(vocals), sr)
         vocals = vocals * gate[:, None]
 
-    save_audio(output, vocals, sr)
+    save_audio(output, normalize(vocals), sr)
     print(f"saved to {output}")
 
 

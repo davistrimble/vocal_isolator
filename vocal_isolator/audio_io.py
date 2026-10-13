@@ -11,6 +11,18 @@ def load_audio(path):
     return samples, sr
 
 
+def normalize(samples, peak=0.95):
+    """Scale so the loudest sample hits `peak` (just under the max of 1.0).
+
+    Separation throws away a lot of the song's energy, so the vocals come out
+    much quieter than the original. This turns them back up.
+    """
+    loudest = np.abs(samples).max()
+    if loudest == 0:
+        return samples  # silent file, nothing to scale
+    return samples * (peak / loudest)
+
+
 def save_audio(path, samples, sr):
     # clip so we don't get nasty distortion if something went above 1.0
     samples = np.clip(samples, -1.0, 1.0)
