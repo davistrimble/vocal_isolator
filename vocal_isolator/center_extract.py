@@ -17,12 +17,14 @@ from vocal_isolator.percussion import harmonic_mask
 from vocal_isolator.repet import background_mask
 
 N_FFT = 2048
+# overlap the STFT windows by 75% instead of the default 50%, sounds smoother
+HOP = N_FFT // 4
 
 # rough range where vocals live. below this is mostly bass/kick (which are
 # also usually panned center, so the subtraction doesn't remove them),
 # above is mostly cymbals/hiss
-VOCAL_LOW_HZ = 100
-VOCAL_HIGH_HZ = 8000
+VOCAL_LOW_HZ = 80
+VOCAL_HIGH_HZ = 16000
 
 
 def extract_center(samples, sr):
@@ -34,8 +36,8 @@ def extract_center(samples, sr):
     mid = (left + right) / 2
     side = (left - right) / 2
 
-    freqs, _, mid_spec = stft(mid, sr, nperseg=N_FFT)
-    _, _, side_spec = stft(side, sr, nperseg=N_FFT)
+    freqs, _, mid_spec = stft(mid, sr, nperseg=N_FFT, noverlap=N_FFT - HOP)
+    _, _, side_spec = stft(side, sr, nperseg=N_FFT, noverlap=N_FFT - HOP)
 
     # spectral subtraction: remove the side energy from the mid, never go below 0
     magnitude = np.maximum(np.abs(mid_spec) - np.abs(side_spec), 0)
@@ -49,13 +51,13 @@ def extract_center(samples, sr):
     magnitude = magnitude * harmonic_mask(magnitude)
 
     # remove the backing music that repeats every bar
-    frames_per_second = sr / (N_FFT // 2)  # scipy's default hop is half the window
+    frames_per_second = sr / HOP
     magnitude = magnitude * (1 - background_mask(magnitude, frames_per_second))
 
     phase = np.angle(mid_spec)
     vocals_spec = magnitude * np.exp(1j * phase)
 
-    _, vocals = istft(vocals_spec, sr, nperseg=N_FFT)
+    _, vocals = istft(vocals_spec, sr, nperseg=N_FFT, noverlap=N_FFT - HOP)
     vocals = vocals[: len(mid)]
 
     # back to stereo so it plays normally
