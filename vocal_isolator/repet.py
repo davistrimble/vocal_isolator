@@ -49,7 +49,20 @@ def find_period(magnitude, frames_per_second):
     hi = min(int(MAX_PERIOD_S * frames_per_second), len(beats) // 3)
     if hi <= lo:
         return None  # clip too short to see any repetition
-    return lo + int(np.argmax(beats[lo:hi]))
+    best = lo + int(np.argmax(beats[lo:hi]))
+
+    # if something repeats every 2s it also repeats every 4s, 6s, etc, so the
+    # best peak is sometimes a multiple of the real period. check if half,
+    # a third, or a quarter of it fits almost as well, and prefer the shortest
+    for divisor in (4, 3, 2):
+        candidate = best // divisor
+        if candidate < lo:
+            continue
+        # look a couple frames either side since it won't divide perfectly
+        nearby = beats[candidate - 2:candidate + 3]
+        if nearby.max() >= 0.9 * beats[best]:
+            return candidate - 2 + int(np.argmax(nearby))
+    return best
 
 
 def background_mask(magnitude, frames_per_second):
