@@ -69,7 +69,7 @@ def process(
     # 5. change tempo
     if new_tempo:
         report(f"changing tempo: {original_tempo:.0f} -> {new_tempo:.0f} BPM")
-        vocals = change_tempo(vocals, original_tempo, new_tempo)
+        vocals = change_tempo(vocals, sr, original_tempo, new_tempo)
         if beat_times is not None:
             # everything happens sooner/later by the same ratio
             beat_times = beat_times * original_tempo / new_tempo

@@ -4,3 +4,4 @@ scipy
 requests
 demucs
 librosa
+pyrubberband

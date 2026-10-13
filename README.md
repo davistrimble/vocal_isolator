@@ -32,6 +32,7 @@ Every 3 dB is roughly a halving of the leftover background. Reproduce with `pyth
 ## Usage
 
 ```
+brew install rubberband        # used for key/tempo changes (Linux: apt install rubberband-cli)
 pip install -r requirements.txt
 python -m vocal_isolator song.mp3
 ```
@@ -57,7 +58,10 @@ detection sometimes picks double or half the tempo you'd count), pass `--origina
   the song, and compare that against profiles of how much each note is used in every major and
   minor key.
 - **Key and tempo changes** use a phase vocoder, which can stretch audio in time without changing
-  its pitch (and vice versa), unlike just speeding up or slowing down the recording.
+  its pitch (and vice versa), unlike just speeding up or slowing down the recording. I started with
+  librosa's, but it made the vocals sound smeared and "phasey", so it now uses
+  [Rubber Band](https://breakfastquay.com/rubberband/) with formant preservation, which keeps the
+  singer sounding like themselves in the new key instead of chipmunky or giant-like.
 
 ### Classical method
 
