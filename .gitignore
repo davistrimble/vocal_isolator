@@ -1,0 +1,18 @@
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# editor / os
+.DS_Store
+.idea/
+
+# audio - don't commit songs (copyright + file size)
+*.mp3
+*.wav
+*.flac
+*.ogg
+*.m4a
+output/
