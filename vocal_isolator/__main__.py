@@ -3,6 +3,7 @@ import os
 
 from vocal_isolator.audio_io import load_audio, normalize, save_audio
 from vocal_isolator.center_extract import extract_center
+from vocal_isolator.eq import presence_boost
 from vocal_isolator.lrclib import find_synced_lyrics
 from vocal_isolator.lyrics import parse_lrc, sung_sections, vocal_gate
 
@@ -14,6 +15,7 @@ def main():
     parser.add_argument("--lyrics", help="timestamped lyrics (.lrc file), used to mute parts with no singing")
     parser.add_argument("--artist", help="with --title, look up timestamped lyrics online instead of using --lyrics")
     parser.add_argument("--title", help="song title, for looking up lyrics")
+    parser.add_argument("--no-boost", action="store_true", help="skip the 2-5 kHz presence boost")
     args = parser.parse_args()
 
     if bool(args.artist) != bool(args.title):
@@ -28,6 +30,8 @@ def main():
     print(f"loaded {args.input}: {samples.shape[0] / sr:.1f}s, {sr} Hz, {samples.shape[1]} channel(s)")
 
     vocals = extract_center(samples, sr)
+    if not args.no_boost:
+        vocals = presence_boost(vocals, sr)
 
     lrc_text = None
     if args.lyrics:
