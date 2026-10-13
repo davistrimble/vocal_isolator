@@ -3,3 +3,4 @@ soundfile
 scipy
 requests
 demucs
+librosa
