@@ -1,15 +1,10 @@
 import argparse
 import os
 
-from vocal_isolator.analysis import NOTE_NAMES, detect_beats, detect_key
-from vocal_isolator.audio_io import load_audio, normalize, save_audio, trim_silence
-from vocal_isolator.center_extract import extract_center
-from vocal_isolator.eq import presence_boost
-from vocal_isolator.ml_separate import extract_vocals_ml
+from vocal_isolator.analysis import NOTE_NAMES
+from vocal_isolator.audio_io import load_audio, save_audio
 from vocal_isolator.lrclib import find_synced_lyrics
-from vocal_isolator.lyrics import parse_lrc, sung_sections, vocal_gate
-from vocal_isolator.metronome import add_clicks
-from vocal_isolator.transform import change_key, change_tempo, semitones_between
+from vocal_isolator.pipeline import process
 
 
 def main():
@@ -48,14 +43,6 @@ def main():
     samples, sr = load_audio(args.input)
     print(f"loaded {args.input}: {samples.shape[0] / sr:.1f}s, {sr} Hz, {samples.shape[1]} channel(s)")
 
-    if args.method == "ml":
-        print("separating with Demucs (takes a minute or two)...")
-        vocals = extract_vocals_ml(samples, sr)
-    else:
-        vocals = extract_center(samples, sr)
-        if not args.no_boost:
-            vocals = presence_boost(vocals, sr)
-
     lrc_text = None
     if args.lyrics:
         with open(args.lyrics, encoding="utf-8") as f:
@@ -67,47 +54,20 @@ def main():
             print(f"couldn't use online lyrics: {e}")
             print("continuing without lyrics")
 
-    if lrc_text:
-        lines = parse_lrc(lrc_text)
-        sections = sung_sections(lines, len(vocals) / sr)
-        print(f"found {len(sections)} sung lines in the lyrics")
-        gate = vocal_gate(sections, len(vocals), sr)
-        vocals = vocals * gate[:, None]
+    vocals = process(
+        samples,
+        sr,
+        method=args.method,
+        new_key=args.new_key,
+        original_key=args.original_key,
+        new_tempo=args.new_tempo,
+        original_tempo=args.original_tempo,
+        metronome=args.metronome,
+        lrc_text=lrc_text,
+        boost=not args.no_boost,
+    )
 
-    # tempo and beats come from the original mix, not the separated vocals,
-    # since the drums and bass are what make the beat easy to find
-    beat_times = None
-    original_tempo = args.original_tempo
-    if args.metronome or (args.new_tempo and not original_tempo):
-        detected_tempo, beat_times = detect_beats(samples, sr)
-        print(f"detected tempo: {detected_tempo:.0f} BPM")
-        original_tempo = original_tempo or detected_tempo
-
-    if args.new_key:
-        original_key = args.original_key
-        if not original_key:
-            original_key, mode = detect_key(samples, sr)
-            print(f"detected key: {original_key} {mode}")
-        shift = semitones_between(original_key, args.new_key)
-        print(f"shifting {shift:+d} semitones ({original_key} -> {args.new_key})")
-        vocals = change_key(vocals, sr, shift)
-
-    if args.new_tempo:
-        print(f"changing tempo: {original_tempo:.0f} -> {args.new_tempo:.0f} BPM")
-        vocals = change_tempo(vocals, original_tempo, args.new_tempo)
-        if beat_times is not None:
-            # everything happens sooner/later by the same ratio
-            beat_times = beat_times * original_tempo / args.new_tempo
-
-    vocals = normalize(vocals)
-    if args.metronome:
-        vocals = add_clicks(vocals, sr, beat_times)
-    else:
-        vocals, cut = trim_silence(vocals, sr)
-        if cut > 0:
-            print(f"skipped {cut:.1f}s of silence at the start")
-
-    save_audio(output, normalize(vocals), sr)
+    save_audio(output, vocals, sr)
     print(f"saved to {output}")
 
 

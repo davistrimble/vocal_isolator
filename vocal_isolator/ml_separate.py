@@ -40,12 +40,24 @@ def get_separator():
     return _separator
 
 
-def extract_vocals_ml(samples, sr):
-    """samples is (num_samples, num_channels). Returns vocals in the same shape."""
+def extract_vocals_ml(samples, sr, on_progress=None):
+    """samples is (num_samples, num_channels). Returns vocals in the same shape.
+
+    on_progress, if given, gets called with the percent done (0-100) as the
+    model works through the song.
+    """
     if samples.shape[1] == 1:
         samples = np.repeat(samples, 2, axis=1)  # the model expects stereo
 
     separator = get_separator()
+
+    # demucs processes the song in overlapping chunks and can call a function
+    # each time a chunk finishes, telling us how far through the song it is
+    def callback(info):
+        if on_progress and info["state"] == "end":
+            on_progress(100 * info["segment_offset"] / info["audio_length"])
+
+    separator.update_parameter(callback=callback)
     # torch wants (channels, samples), we store (samples, channels)
     wav = torch.from_numpy(np.ascontiguousarray(samples.T))
     _, stems = separator.separate_tensor(wav, sr)
