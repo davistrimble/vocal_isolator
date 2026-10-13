@@ -9,34 +9,58 @@ practice. Playing the original recording doesn't really work as a stand-in, sinc
 cover up the parts the rest of us are supposed to be singing. What we actually want is just the
 lead vocal, so we can sing our parts around it like the soloist is in the room.
 
-This tool takes a song and gives back only the vocals. Give it the song's lyrics and it'll also
-mute everything between sung lines and start the file right at the first line, so it's ready to
-play at rehearsal.
+This tool takes a song and gives back only the vocals, trimmed to start right at the first sung
+line so it's ready to play at rehearsal.
+
+## Results
+
+I built this twice. First with classical signal processing and no machine learning, to see how far
+that could get. It worked, but not well enough for rehearsal — instruments playing in the same key
+as the singer kept bleeding through. So the second version uses a neural network.
+
+Scored on 50 songs from the MUSDB18 benchmark, where the real isolated vocals are available to
+compare against (SDR = signal-to-distortion ratio, higher is better):
+
+| Method | Vocal SDR |
+|---|---|
+| Do nothing (full mix) | -4.6 dB |
+| Attempt 1: classical DSP | 1.2 dB |
+| Attempt 2: Demucs neural network | **8.8 dB** |
+
+Every 3 dB is roughly a halving of the leftover background. Reproduce with `python benchmark.py`.
 
 ## Usage
 
 ```
+pip install -r requirements.txt
 python -m vocal_isolator song.mp3
 ```
 
-Writes `<song>_vocals.wav` next to the input.
+Writes `<song>_vocals.wav` next to the input. The first run downloads the model (~90 MB). A
+4-minute song takes about a minute and a half on an Apple Silicon Mac.
 
-Optionally, give it timestamped lyrics so it can mute the parts of the song where nobody's singing:
+To use the classical pipeline instead:
 
 ```
-python -m vocal_isolator song.mp3 --lyrics song.lrc
-python -m vocal_isolator song.mp3 --artist "Dexys Midnight Runners" --title "Come On Eileen"
+python -m vocal_isolator song.mp3 --method classic
+```
+
+The classical pipeline can also use timestamped lyrics to mute the parts of the song where nobody's
+singing (this isn't needed with Demucs, whose output is already silent there):
+
+```
+python -m vocal_isolator song.mp3 --method classic --lyrics song.lrc
+python -m vocal_isolator song.mp3 --method classic --artist "Blues Traveler" --title "Run-Around"
 ```
 
 The second one looks the lyrics up on [LRCLIB](https://lrclib.net). It only uses them if it finds a
 version of the song the same length as your file, since a radio edit and an album version have
-different timings. Takes a few seconds for a typical song.
+different timings.
 
-## How it works
+## Attempt 1: classical signal processing (`--method classic`)
 
-No machine learning — just classical signal processing on the song's spectrogram
-(a picture of how loud each frequency is at each moment). Each step removes a different
-kind of non-vocal sound:
+No machine learning — just signal processing on the song's spectrogram (a picture of how loud each
+frequency is at each moment). Each step removes a different kind of non-vocal sound:
 
 1. **Center channel extraction** — lead vocals are almost always mixed dead center, so
    they're identical in the left and right channels. Subtracting the side channel (L - R)
@@ -56,7 +80,7 @@ kind of non-vocal sound:
    obvious when no one is singing over them. LRC lyrics have a timestamp for each line, so anything
    outside a sung line gets faded out.
 
-## Limitations
+### Limitations
 
 - Needs a stereo file (step 1 doesn't work on mono).
 - Anything else panned center, pitched, and non-repeating (a lead guitar solo, a sax) gets kept.
@@ -64,7 +88,7 @@ kind of non-vocal sound:
 - Lyric gating only knows when each *line* starts, not each word, so gaps inside a line aren't muted.
 - Reverb on the vocal usually gets removed along with the background, so the result sounds dry.
 
-## Things I tried that didn't work
+### Things I tried that didn't work
 
 - **Melody tracking / harmonic comb filter** — find the note being sung in each frame and keep only
   its harmonics. Pitch tracking was accurate on test signals, but on real songs the guitars and keys
@@ -74,10 +98,35 @@ kind of non-vocal sound:
   bin is panned and keeps only the center. Should've helped with instruments panned slightly off
   center, but when a bin has both the voice and an off-center instrument in it, its pan position
   lands in between and the whole bin (voice included) gets thrown out. Scored worse than plain
-  subtraction on every test mix at every width I tried (best: 9.1 dB vs 9.4 dB).
+  subtraction on my synthetic test mixes at every width I tried.
+
+### Why it hit a wall
+
+Every step above relies on a rule about *where* or *how* vocals show up — centered, harmonic,
+non-repeating. A rhythm guitar that's panned center and playing chords in the singer's key follows
+all the same rules. Telling those two apart takes knowing what a voice actually sounds like
+compared to a guitar, and that's something you learn from examples, not something you can write
+a rule for.
+
+## Attempt 2: Demucs (`--method ml`, the default)
+
+[Demucs](https://github.com/facebookresearch/demucs) is a neural network from Meta AI Research,
+trained on songs where every instrument and the vocals were recorded separately. That lets it
+learn the mapping from "full mix" to "just the vocals" directly. I use the pretrained `htdemucs`
+model (Hybrid Transformer Demucs), which looks at both the raw waveform and the spectrogram, and
+splits a song into drums, bass, other, and vocals — this tool keeps the vocals.
+
+After separation, both methods share the same finishing steps: the volume is normalized (separated
+vocals come out much quieter than the original song) and silence is trimmed off the start and end.
 
 ## References
 
 - D. Fitzgerald, "Harmonic/Percussive Separation using Median Filtering," DAFx 2010.
 - Z. Rafii and B. Pardo, "REpeating Pattern Extraction Technique (REPET): A Simple Method for
   Music/Voice Separation," IEEE TASLP 2013.
+- D. Barry, B. Lawlor, and E. Coyle, "Sound Source Separation: Azimuth Discrimination and
+  Resynthesis," DAFx 2004.
+- S. Rouard, F. Massa, and A. Défossez, "Hybrid Transformers for Music Source Separation,"
+  ICASSP 2023.
+- Z. Rafii, A. Liutkus, F.-R. Stöter, S. I. Mimilakis, and R. Bittner, "The MUSDB18 corpus for
+  music separation," 2017.
