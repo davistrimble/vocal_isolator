@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from vocal_isolator.audio_io import load_audio, normalize, save_audio
+from vocal_isolator.audio_io import load_audio, normalize, save_audio, trim_silence
 from vocal_isolator.center_extract import extract_center
 from vocal_isolator.eq import presence_boost
 from vocal_isolator.lrclib import find_synced_lyrics
@@ -50,6 +50,10 @@ def main():
         print(f"found {len(sections)} sung lines in the lyrics")
         gate = vocal_gate(sections, len(vocals), sr)
         vocals = vocals * gate[:, None]
+
+    vocals, cut = trim_silence(vocals, sr)
+    if cut > 0:
+        print(f"skipped {cut:.1f}s of silence at the start")
 
     save_audio(output, normalize(vocals), sr)
     print(f"saved to {output}")
