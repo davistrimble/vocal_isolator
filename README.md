@@ -21,11 +21,12 @@ kind of non-vocal sound:
 1. **Center channel extraction** — lead vocals are almost always mixed dead center, so
    they're identical in the left and right channels. Subtracting the side channel (L - R)
    from the mid channel (L + R) removes instruments panned to the sides.
-2. **Band limiting** — cut everything below 100 Hz and above 8 kHz, outside the vocal range.
-   Gets rid of bass and kick drum, which are also usually panned center.
+2. **Band limiting** — cut everything below 80 Hz and above 16 kHz. Gets rid of bass and kick
+   drum, which are also usually panned center. (This was originally 100 Hz - 8 kHz, but cutting
+   the highs made vocals sound like they were coming out of a phone speaker.)
 3. **Harmonic/percussive separation** — drums look like vertical lines in a spectrogram, singing
    looks like horizontal lines. Median filtering in each direction tells them apart, and the
-   percussive parts get dropped.
+   percussive parts get faded out with a soft mask.
 4. **REPET** — the backing music repeats every bar while the vocal melody doesn't. Find the
    repeat length, take the median across all repetitions to model the background, and subtract it.
    Runs on 20 second windows since songs change tempo.
