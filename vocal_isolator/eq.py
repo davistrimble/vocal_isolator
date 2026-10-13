@@ -1,4 +1,4 @@
-"""A "presence boost" - a standard mixing trick for making vocals easier to
+"""A "presence boost", a standard mixing trick for making vocals easier to
 understand.
 
 The consonants that make words intelligible (t, k, s, ch...) and the "edge"

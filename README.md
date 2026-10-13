@@ -15,7 +15,7 @@ line so it's ready to play at rehearsal.
 ## Results
 
 I built this twice. First with classical signal processing and no machine learning, to see how far
-that could get. It worked, but not well enough for rehearsal — instruments playing in the same key
+that could get. It worked, but not well enough for rehearsal. Instruments playing in the same key
 as the singer kept bleeding through. So the second version uses a neural network.
 
 Scored on 50 songs from the MUSDB18 benchmark, where the real isolated vocals are available to
@@ -53,7 +53,7 @@ then lets you play or download the result.
 
 It's a small [Flask](https://flask.palletsprojects.com/) app (`vocal_isolator/web.py`) with a plain
 HTML/JavaScript page. Processing runs in a background thread so the browser isn't stuck waiting on
-one long request — the page polls a `/status` endpoint instead. All the audio work goes through
+one long request. The page polls a `/status` endpoint instead. All the audio work goes through
 the same `pipeline.process()` function as the command line.
 
 ### Rehearsal options
@@ -101,24 +101,24 @@ different timings.
 
 ## Attempt 1: classical signal processing (`--method classic`)
 
-No machine learning — just signal processing on the song's spectrogram (a picture of how loud each
-frequency is at each moment). Each step removes a different kind of non-vocal sound:
+No machine learning here, only signal processing on the song's spectrogram (a picture of how loud
+each frequency is at each moment). Each step removes a different kind of non-vocal sound:
 
-1. **Center channel extraction** — lead vocals are almost always mixed dead center, so
+1. **Center channel extraction.** Lead vocals are almost always mixed dead center, so
    they're identical in the left and right channels. Subtracting the side channel (L - R)
    from the mid channel (L + R) removes instruments panned to the sides.
-2. **Band limiting** — cut everything below 80 Hz and above 16 kHz. Gets rid of bass and kick
+2. **Band limiting.** Cut everything below 80 Hz and above 16 kHz. Gets rid of bass and kick
    drum, which are also usually panned center. (This was originally 100 Hz - 8 kHz, but cutting
    the highs made vocals sound like they were coming out of a phone speaker.)
-3. **Harmonic/percussive separation** — drums look like vertical lines in a spectrogram, singing
+3. **Harmonic/percussive separation.** Drums look like vertical lines in a spectrogram, singing
    looks like horizontal lines. Median filtering in each direction tells them apart, and the
    percussive parts get faded out with a soft mask.
-4. **REPET** — the backing music repeats every bar while the vocal melody doesn't. Find the
+4. **REPET.** The backing music repeats every bar while the vocal melody doesn't. Find the
    repeat length, take the median across all repetitions to model the background, and subtract it.
    Runs on 20 second windows since songs change tempo.
-5. **Presence boost** — turn up 2-5 kHz by a few dB, where consonants live. Doesn't remove anything,
-   but makes the words easier to follow over whatever background is left. Skip with `--no-boost`.
-6. **Lyric gating** (optional) — the steps above never remove everything, and leftovers are most
+5. **Presence boost.** Turn up 2-5 kHz by a few dB, where consonants live. This makes the words
+   easier to follow over whatever background is left. Skip with `--no-boost`.
+6. **Lyric gating** (optional). The steps above never remove everything, and leftovers are most
    obvious when no one is singing over them. LRC lyrics have a timestamp for each line, so anything
    outside a sung line gets faded out.
 
@@ -132,23 +132,22 @@ frequency is at each moment). Each step removes a different kind of non-vocal so
 
 ### Things I tried that didn't work
 
-- **Melody tracking / harmonic comb filter** — find the note being sung in each frame and keep only
+- **Melody tracking / harmonic comb filter.** Find the note being sung in each frame and keep only
   its harmonics. Pitch tracking was accurate on test signals, but on real songs the guitars and keys
   play in the same key as the singer, so their harmonics land in the same places. It only removed
   ~0.5 dB and locked onto instruments almost as often as the voice, so I took it out.
-- **ADRess** (Barry et al., 2004) instead of mid/side subtraction — estimates where each frequency
-  bin is panned and keeps only the center. Should've helped with instruments panned slightly off
+- **ADRess** (Barry et al., 2004) in place of mid/side subtraction. It estimates where each
+  frequency bin is panned and keeps only the center. Should've helped with instruments panned slightly off
   center, but when a bin has both the voice and an off-center instrument in it, its pan position
   lands in between and the whole bin (voice included) gets thrown out. Scored worse than plain
   subtraction on my synthetic test mixes at every width I tried.
 
 ### Why it hit a wall
 
-Every step above relies on a rule about *where* or *how* vocals show up — centered, harmonic,
+Every step above relies on a rule about where or how vocals show up: centered, harmonic, and
 non-repeating. A rhythm guitar that's panned center and playing chords in the singer's key follows
 all the same rules. Telling those two apart takes knowing what a voice actually sounds like
-compared to a guitar, and that's something you learn from examples, not something you can write
-a rule for.
+compared to a guitar, and there's no simple rule for that. A model has to learn it from examples.
 
 ## Attempt 2: Demucs (`--method ml`, the default)
 
@@ -156,7 +155,7 @@ a rule for.
 trained on songs where every instrument and the vocals were recorded separately. That lets it
 learn the mapping from "full mix" to "just the vocals" directly. I use the pretrained `htdemucs`
 model (Hybrid Transformer Demucs), which looks at both the raw waveform and the spectrogram, and
-splits a song into drums, bass, other, and vocals — this tool keeps the vocals.
+splits a song into drums, bass, other, and vocals. This tool keeps the vocals.
 
 After separation, both methods share the same finishing steps: the volume is normalized (separated
 vocals come out much quieter than the original song) and silence is trimmed off the start and end.

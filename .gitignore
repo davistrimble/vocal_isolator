@@ -9,7 +9,7 @@ venv/
 .DS_Store
 .idea/
 
-# audio - don't commit songs (copyright + file size)
+# don't commit songs (copyright + file size)
 *.mp3
 *.wav
 *.flac

@@ -1,4 +1,4 @@
-"""REPET - REpeating Pattern Extraction Technique (Rafii & Pardo, 2012).
+"""REPET: REpeating Pattern Extraction Technique (Rafii & Pardo, 2012).
 
 The idea: the backing music in a song repeats (same chords/beat every bar),
 but the vocal melody keeps changing. So:

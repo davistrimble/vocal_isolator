@@ -3,7 +3,7 @@
 The classical pipeline (center_extract.py) hit a wall: an instrument that's
 panned center and playing in the same key as the singer looks just like the
 voice to every rule-based method I tried. Telling them apart means knowing
-what a voice actually sounds like vs a guitar - which is what a neural
+what a voice actually sounds like vs a guitar, which is what a neural
 network learns from examples.
 
 Demucs was trained on songs where every instrument and the vocals were

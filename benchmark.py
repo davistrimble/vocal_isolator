@@ -3,7 +3,7 @@
 Uses the MUSDB18 sample dataset: 7 second clips from 50 songs where every
 instrument and the vocals were recorded separately, so we know exactly what
 the "right answer" sounds like. Score is SDR (signal-to-distortion ratio, in
-dB) from museval, the standard tool for this benchmark - higher is better.
+dB) from museval, the standard tool for this benchmark. Higher is better.
 
     pip install -r requirements-dev.txt
     python benchmark.py

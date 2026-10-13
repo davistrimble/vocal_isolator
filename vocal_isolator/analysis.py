@@ -1,8 +1,8 @@
 """Figure out a song's tempo, beat positions, and key. All classical signal
 processing, no ML.
 
-Tempo/beats: librosa's beat tracker (Ellis, 2007). It finds "onsets" - moments
-where a new sound starts, like a drum hit or a strummed chord - then looks for
+Tempo/beats: librosa's beat tracker (Ellis, 2007). It finds "onsets" (moments
+where a new sound starts, like a drum hit or a strummed chord), then looks for
 the steady pulse that lines up with the most onsets.
 
 Key: the Krumhansl-Schmuckler algorithm. Music psychologists measured how
