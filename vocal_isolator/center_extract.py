@@ -13,6 +13,8 @@ from the mid magnitude, and what's left is mostly the centered vocal.
 import numpy as np
 from scipy.signal import stft, istft
 
+from vocal_isolator.percussion import harmonic_mask
+
 N_FFT = 2048
 
 # rough range where vocals live. below this is mostly bass/kick (which are
@@ -40,6 +42,10 @@ def extract_center(samples, sr):
     # zero out frequencies outside the vocal range
     outside_vocal_range = (freqs < VOCAL_LOW_HZ) | (freqs > VOCAL_HIGH_HZ)
     magnitude[outside_vocal_range, :] = 0
+
+    # drums (especially snare) are often panned center too, so get rid of
+    # anything that looks percussive
+    magnitude = magnitude * harmonic_mask(magnitude)
 
     phase = np.angle(mid_spec)
     vocals_spec = magnitude * np.exp(1j * phase)
