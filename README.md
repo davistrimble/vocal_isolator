@@ -10,7 +10,18 @@ Work in progress.
 python -m vocal_isolator song.mp3
 ```
 
-Writes `<song>_vocals.wav` next to the input. Takes a few seconds for a typical song.
+Writes `<song>_vocals.wav` next to the input.
+
+Optionally, give it timestamped lyrics so it can mute the parts of the song where nobody's singing:
+
+```
+python -m vocal_isolator song.mp3 --lyrics song.lrc
+python -m vocal_isolator song.mp3 --artist "Dexys Midnight Runners" --title "Come On Eileen"
+```
+
+The second one looks the lyrics up on [LRCLIB](https://lrclib.net). It only uses them if it finds a
+version of the song the same length as your file, since a radio edit and an album version have
+different timings. Takes a few seconds for a typical song.
 
 ## How it works
 
@@ -30,12 +41,16 @@ kind of non-vocal sound:
 4. **REPET** — the backing music repeats every bar while the vocal melody doesn't. Find the
    repeat length, take the median across all repetitions to model the background, and subtract it.
    Runs on 20 second windows since songs change tempo.
+5. **Lyric gating** (optional) — the steps above never remove everything, and leftovers are most
+   obvious when no one is singing over them. LRC lyrics have a timestamp for each line, so anything
+   outside a sung line gets faded out.
 
 ## Limitations
 
 - Needs a stereo file (step 1 doesn't work on mono).
 - Anything else panned center, pitched, and non-repeating (a lead guitar solo, a sax) gets kept.
 - Long held vocal notes can get partly removed by REPET since they look like they "repeat".
+- Lyric gating only knows when each *line* starts, not each word, so gaps inside a line aren't muted.
 - Reverb on the vocal usually gets removed along with the background, so the result sounds dry.
 
 ## References
