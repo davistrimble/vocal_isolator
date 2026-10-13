@@ -16,3 +16,6 @@ venv/
 *.ogg
 *.m4a
 output/
+
+# lyrics are copyrighted too
+*.lrc
