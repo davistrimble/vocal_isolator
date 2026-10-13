@@ -15,6 +15,12 @@ from scipy.signal import stft, istft
 
 N_FFT = 2048
 
+# rough range where vocals live. below this is mostly bass/kick (which are
+# also usually panned center, so the subtraction doesn't remove them),
+# above is mostly cymbals/hiss
+VOCAL_LOW_HZ = 100
+VOCAL_HIGH_HZ = 8000
+
 
 def extract_center(samples, sr):
     if samples.shape[1] < 2:
@@ -25,11 +31,16 @@ def extract_center(samples, sr):
     mid = (left + right) / 2
     side = (left - right) / 2
 
-    _, _, mid_spec = stft(mid, sr, nperseg=N_FFT)
+    freqs, _, mid_spec = stft(mid, sr, nperseg=N_FFT)
     _, _, side_spec = stft(side, sr, nperseg=N_FFT)
 
     # spectral subtraction: remove the side energy from the mid, never go below 0
     magnitude = np.maximum(np.abs(mid_spec) - np.abs(side_spec), 0)
+
+    # zero out frequencies outside the vocal range
+    outside_vocal_range = (freqs < VOCAL_LOW_HZ) | (freqs > VOCAL_HIGH_HZ)
+    magnitude[outside_vocal_range, :] = 0
+
     phase = np.angle(mid_spec)
     vocals_spec = magnitude * np.exp(1j * phase)
 
