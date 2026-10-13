@@ -19,6 +19,10 @@ import numpy as np
 MIN_PERIOD_S = 1.0
 MAX_PERIOD_S = 8.0
 
+# songs change tempo / switch sections, so instead of finding one period for
+# the whole song we run REPET separately on windows of this many seconds
+WINDOW_S = 20.0
+
 
 def beat_spectrum(magnitude):
     """How similar the spectrogram is to itself shifted by each lag (in frames).
@@ -52,6 +56,15 @@ def background_mask(magnitude, frames_per_second):
     """Returns a soft mask (values 0 to 1) of how much of each point is
     repeating background. Same shape as magnitude.
     """
+    window = int(WINDOW_S * frames_per_second)
+    mask = np.zeros_like(magnitude)
+    for start in range(0, magnitude.shape[1], window):
+        chunk = magnitude[:, start:start + window]
+        mask[:, start:start + window] = _mask_for_chunk(chunk, frames_per_second)
+    return mask
+
+
+def _mask_for_chunk(magnitude, frames_per_second):
     period = find_period(magnitude, frames_per_second)
     if period is None:
         return np.zeros_like(magnitude)
