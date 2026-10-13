@@ -48,7 +48,7 @@ python -m vocal_isolator.web
 
 Then open http://localhost:8000. Pick an MP3 and it detects the tempo and key right away and fills
 them in; check "Change the key" or "Change the tempo" to adjust them, or "Add a metronome" for a
-click track with a count-in. The page checks on progress every 15 seconds while the song processes,
+click track with a count-in. The page checks on progress every 5 seconds while the song processes,
 then lets you play or download the result.
 
 It's a small [Flask](https://flask.palletsprojects.com/) app (`vocal_isolator/web.py`) with a plain

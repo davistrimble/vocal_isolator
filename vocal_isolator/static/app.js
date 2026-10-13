@@ -4,7 +4,7 @@
 // gives back the server's response. Our server replies in JSON, which
 // response.json() turns into a normal JavaScript object.
 
-const POLL_SECONDS = 15; // how often to ask the server how it's going
+const POLL_SECONDS = 5; // how often to ask the server how it's going
 
 const form = document.getElementById("options-form");
 const songInput = document.getElementById("song");

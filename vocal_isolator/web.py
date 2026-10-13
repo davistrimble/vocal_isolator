@@ -14,7 +14,7 @@ How a request flows through the site:
                                 processing in a background thread and reply
                                 right away, instead of making the browser wait
                                 a minute or two on one request.
-  4. GET  /status/<job_id>   -> the page asks this every 15 seconds to show
+  4. GET  /status/<job_id>   -> the page asks this every 5 seconds to show
                                 progress ("separating vocals: 40%").
   5. GET  /download/<job_id> -> once it's done, the finished vocals.
 
