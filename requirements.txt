@@ -5,3 +5,4 @@ requests
 demucs
 librosa
 pyrubberband
+flask
