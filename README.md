@@ -61,6 +61,11 @@ kind of non-vocal sound:
   its harmonics. Pitch tracking was accurate on test signals, but on real songs the guitars and keys
   play in the same key as the singer, so their harmonics land in the same places. It only removed
   ~0.5 dB and locked onto instruments almost as often as the voice, so I took it out.
+- **ADRess** (Barry et al., 2004) instead of mid/side subtraction — estimates where each frequency
+  bin is panned and keeps only the center. Should've helped with instruments panned slightly off
+  center, but when a bin has both the voice and an off-center instrument in it, its pan position
+  lands in between and the whole bin (voice included) gets thrown out. Scored worse than plain
+  subtraction on every test mix at every width I tried (best: 9.1 dB vs 9.4 dB).
 
 ## References
 
