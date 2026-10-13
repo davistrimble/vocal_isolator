@@ -1,8 +1,7 @@
 # python
 __pycache__/
 *.pyc
-.venv
-*.nosync
+.venv/
 venv/
 *.egg-info/
 
