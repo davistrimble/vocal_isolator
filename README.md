@@ -1,5 +1,7 @@
 # vocal_isolator
 
+[![tests](https://github.com/davistrimble/vocal_isolator/actions/workflows/tests.yml/badge.svg)](https://github.com/davistrimble/vocal_isolator/actions/workflows/tests.yml)
+
 Take a song in, get just the vocals out.
 
 ## Why I built this
@@ -32,6 +34,17 @@ compare against (SDR = signal-to-distortion ratio, higher is better):
 | Attempt 2: Demucs neural network | **8.8 dB** |
 
 Every 3 dB is roughly a halving of the leftover background. Reproduce with `python benchmark.py`.
+
+## Tests
+
+```
+pip install -r requirements-dev.txt
+python -m pytest tests
+```
+
+The tests generate their own audio (tones, chord progressions, made-up mixes) instead of using real
+songs. They run on every push with GitHub Actions. The Demucs tests are skipped by default since
+they download the model; run them with `RUN_SLOW_TESTS=1`.
 
 ## Usage
 

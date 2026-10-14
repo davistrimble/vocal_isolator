@@ -1,0 +1,28 @@
+# runs the tests on GitHub's servers every time I push
+name: tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install rubberband
+        run: sudo apt-get update && sudo apt-get install -y rubberband-cli
+
+      - name: Install Python packages
+        run: |
+          # the CPU-only build of pytorch is ~200 MB instead of ~2 GB, and the
+          # demucs tests are skipped here anyway
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt pytest
+
+      - name: Run tests
+        run: python -m pytest tests -v
