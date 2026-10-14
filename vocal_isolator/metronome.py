@@ -50,7 +50,8 @@ def steady_beats(beat_times, song_length_s):
     # the end at the closing tempo
     start_gap = np.median(np.diff(beat_times[:SMOOTHING_BEATS]))
     end_gap = np.median(np.diff(beat_times[-SMOOTHING_BEATS:]))
-    before = np.arange(beat_times[0] - start_gap, 0, -start_gap)[::-1]
+    # (stopping just below 0 so a beat that lands exactly on 0:00 is included)
+    before = np.arange(beat_times[0] - start_gap, -1e-6, -start_gap)[::-1]
     after = np.arange(beat_times[-1] + end_gap, song_length_s, end_gap)
     return np.concatenate([before, beat_times, after])
 
