@@ -60,7 +60,7 @@ def find_period(magnitude, frames_per_second):
             continue
         # look a couple frames either side since it won't divide perfectly
         nearby = beats[candidate - 2:candidate + 3]
-        if nearby.max() >= 0.9 * beats[best]:
+        if nearby.max() >= 0.8 * beats[best]:
             return candidate - 2 + int(np.argmax(nearby))
     return best
 
