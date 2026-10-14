@@ -125,8 +125,8 @@ different timings.
 
 ## Attempt 1: classical signal processing (`--method classic`)
 
-No machine learning here, only signal processing on the song's spectrogram (a picture of how loud
-each frequency is at each moment). Each step removes a different kind of non-vocal sound:
+This version works on the song's spectrogram, a picture of how loud each frequency is at each
+moment. Each step removes a different kind of non-vocal sound:
 
 1. **Center channel extraction.** Lead vocals are almost always mixed dead center, so
    they're identical in the left and right channels. Subtracting the side channel (L - R)
@@ -154,25 +154,6 @@ each frequency is at each moment). Each step removes a different kind of non-voc
 - Lyric gating only knows when each *line* starts, not each word, so gaps inside a line aren't muted.
 - Reverb on the vocal usually gets removed along with the background, so the result sounds dry.
 
-### Things I tried that didn't work
-
-- **Melody tracking / harmonic comb filter.** Find the note being sung in each frame and keep only
-  its harmonics. Pitch tracking was accurate on test signals, but on real songs the guitars and keys
-  play in the same key as the singer, so their harmonics land in the same places. It only removed
-  ~0.5 dB and locked onto instruments almost as often as the voice, so I took it out.
-- **ADRess** (Barry et al., 2004) in place of mid/side subtraction. It estimates where each
-  frequency bin is panned and keeps only the center. Should've helped with instruments panned slightly off
-  center, but when a bin has both the voice and an off-center instrument in it, its pan position
-  lands in between and the whole bin (voice included) gets thrown out. Scored worse than plain
-  subtraction on my synthetic test mixes at every width I tried.
-
-### Why it hit a wall
-
-Every step above relies on a rule about where or how vocals show up: centered, harmonic, and
-non-repeating. A rhythm guitar that's panned center and playing chords in the singer's key follows
-all the same rules. Telling those two apart takes knowing what a voice actually sounds like
-compared to a guitar, and there's no simple rule for that. A model has to learn it from examples.
-
 ## Attempt 2: Demucs (`--method ml`, the default)
 
 [Demucs](https://github.com/facebookresearch/demucs) is a neural network from Meta AI Research,
@@ -189,8 +170,6 @@ vocals come out much quieter than the original song) and silence is trimmed off 
 - D. Fitzgerald, "Harmonic/Percussive Separation using Median Filtering," DAFx 2010.
 - Z. Rafii and B. Pardo, "REpeating Pattern Extraction Technique (REPET): A Simple Method for
   Music/Voice Separation," IEEE TASLP 2013.
-- D. Barry, B. Lawlor, and E. Coyle, "Sound Source Separation: Azimuth Discrimination and
-  Resynthesis," DAFx 2004.
 - S. Rouard, F. Massa, and A. Défossez, "Hybrid Transformers for Music Source Separation,"
   ICASSP 2023.
 - Z. Rafii, A. Liutkus, F.-R. Stöter, S. I. Mimilakis, and R. Bittner, "The MUSDB18 corpus for
