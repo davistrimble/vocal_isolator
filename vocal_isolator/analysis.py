@@ -33,7 +33,18 @@ def _mono(samples, sr):
 
 def detect_beats(samples, sr):
     """Returns (tempo_bpm, beat_times_in_seconds)."""
-    tempo, beat_times = librosa.beat.beat_track(y=_mono(samples, sr), sr=ANALYSIS_SR, units="time")
+    # hop_length=256 checks for beats every ~12 ms (the default is ~23 ms),
+    # so the beat times come out more precise.
+    #
+    # tightness is how strongly the tracker sticks to one steady tempo vs
+    # chasing every drum hit. at the default (100) it slipped in and out of
+    # step for a few beats at most section changes, which made the metronome
+    # stumble. at 1600 the clicks are evenly spaced the whole way through. the
+    # cost: if a song deliberately speeds up or slows down, the clicks won't
+    # follow it for that section
+    tempo, beat_times = librosa.beat.beat_track(
+        y=_mono(samples, sr), sr=ANALYSIS_SR, hop_length=256, tightness=1600, units="time"
+    )
     return float(np.atleast_1d(tempo)[0]), beat_times
 
 

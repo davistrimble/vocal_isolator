@@ -8,7 +8,7 @@ from vocal_isolator.audio_io import normalize, trim_silence
 from vocal_isolator.center_extract import extract_center
 from vocal_isolator.eq import presence_boost
 from vocal_isolator.lyrics import parse_lrc, sung_sections, vocal_gate
-from vocal_isolator.metronome import add_clicks
+from vocal_isolator.metronome import add_clicks, steady_beats
 from vocal_isolator.ml_separate import extract_vocals_ml
 from vocal_isolator.transform import change_key, change_tempo, semitones_between
 
@@ -56,6 +56,7 @@ def process(
         detected_tempo, beat_times = detect_beats(samples, sr)
         report(f"detected tempo: {detected_tempo:.0f} BPM")
         original_tempo = original_tempo or detected_tempo
+        beat_times = steady_beats(beat_times, len(samples) / sr)
 
     # 4. change key
     if new_key:

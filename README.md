@@ -78,6 +78,13 @@ detection sometimes picks double or half the tempo you'd count), pass `--origina
   librosa's, but it made the vocals sound smeared and "phasey", so it now uses
   [Rubber Band](https://breakfastquay.com/rubberband/) with formant preservation, which keeps the
   singer sounding like themselves in the new key instead of chipmunky or giant-like.
+- **Metronome.** My first version was hard to use: the clicks wobbled, and they were quieter than
+  the vocals so you lost them whenever someone was singing. Two fixes. The beat tracker now runs
+  with a high "tightness" setting so it holds one steady tempo instead of slipping out of step at
+  section changes, and each click time is averaged with the 8 beats around it to smooth out the
+  tracker's ~12 ms timing steps. The vocals are also turned down under a louder 2.5 kHz click, so
+  the click sits about 14 dB above the singing. One tradeoff: since the clicks hold a steady tempo,
+  they won't follow a song that deliberately speeds up or slows down partway through.
 
 ### Classical method
 
