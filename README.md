@@ -9,8 +9,12 @@ practice. Playing the original recording doesn't really work as a stand-in, sinc
 cover up the parts the rest of us are supposed to be singing. What we actually want is just the
 lead vocal, so we can sing our parts around it like the soloist is in the room.
 
-This tool takes a song and gives back only the vocals, trimmed to start right at the first sung
-line so it's ready to play at rehearsal.
+There are free vocal removers online, but none of the ones I found let you change the tempo or the
+key, and for rehearsal I needed both. Our arrangements aren't always in the same key as the
+original recording, and when we're learning a song it helps to slow it down. So on top of
+isolating the vocals, this tool can transpose them to a new key, change the tempo without changing
+the pitch, and add a metronome. It also trims the output to start right at the first sung line so
+it's ready to play at rehearsal.
 
 ## Results
 
